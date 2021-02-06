@@ -4,13 +4,13 @@ GEM
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     aws-eventstream (1.1.0)
-    aws-partitions (1.423.0)
+    aws-partitions (1.424.0)
     aws-sdk-core (3.112.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
       jmespath (~> 1.0)
-    aws-sdk-sns (1.38.0)
+    aws-sdk-states (1.38.0)
       aws-sdk-core (~> 3, >= 3.112.0)
       aws-sigv4 (~> 1.1)
     aws-sigv4 (1.2.2)
@@ -44,7 +44,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aws-sdk-sns (~> 1.38)
+  aws-sdk-states (~> 1.38)
   httparty (~> 0.18.1)
   json (~> 2.5)
   msgpack (~> 1.1)

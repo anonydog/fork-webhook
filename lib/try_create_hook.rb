@@ -1,13 +1,8 @@
+require 'aws-sdk-states'
+require 'msgpack'
 require 'octokit'
 
-def handle(params)
-  user = params['user']
-  repo = params['repo']
-
-  github_api = Octokit::Client.new(access_token: ENV['GITHUB_API_ACCESS_TOKEN'])
-  forked_repo = github_api.fork(:owner => user, :repo => repo)
-  try_create_hook(github_api, forked_repo.full_name, 100)
-end
+require 'base64'
 
 def try_create_hook(github_api, repo_name, wait)
   begin
@@ -34,7 +29,31 @@ def try_create_hook(github_api, repo_name, wait)
       return
     end
     puts "Github did not create the fork yet. Trying again in #{wait}ms..."
-    sleep(wait.to_f/1000)
-    try_create_hook(github_api, repo_name, wait * 2)
+    send_retry_message(repo_name, wait * 2)
   end
+end
+
+def send_retry_message(repo_name, wait)
+  aws_credentials = Aws::AssumeRoleCredentials.new(
+    role_session_name: 'anonydog-website',
+    role_arn: ENV['STATE_MACHINE_ROLE_ARN'],
+    client: Aws::STS::Client.new(
+      region: 'us-west-2',
+      credentials: Aws::Credentials.new(
+        ENV['STATE_MACHINE_ACCESS_KEY'],
+        ENV['STATE_MACHINE_SECRET_KEY'],
+      ),
+    ),
+  )
+  aws_client = Aws::States::Client.new(
+    region: 'us-west-2',
+    credentials: aws_credentials,
+  )
+  aws_client.start_execution(
+    state_machine_arn: ENV['STATE_MACHINE_ARN'],
+    input: JSON.encode({
+      delay_seconds: wait / 1000,
+      message: Base64.encode({repo: repo_name, delay: wait}.to_msgpack),
+    })
+  )
 end

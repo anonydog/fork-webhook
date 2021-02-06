@@ -5,7 +5,7 @@ require 'httparty'
 require 'json'
 require 'msgpack'
 
-require File.expand_path(__dir__ + "/../lib/handle_fork")
+require File.expand_path(__dir__ + "/../lib/create_fork")
 
 verifier = Aws::SNS::MessageVerifier.new
 
@@ -25,5 +25,5 @@ Handler = Proc.new do |req, res|
 
   params = MessagePack.unpack(Base64.decode64(req_body['Message']))
   
-  handle(params)
+  create_fork(params['user'], params['repo'])
 end

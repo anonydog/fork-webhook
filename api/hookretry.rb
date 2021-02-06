@@ -3,6 +3,12 @@ require 'base64'
 require 'aws-sdk-sns'
 require 'httparty'
 require 'json'
+require 'msgpack'
+require 'octokit'
+
+require 'base64'
+
+require File.expand_path(__dir__ + "/../lib/try_create_hook")
 
 verifier = Aws::SNS::MessageVerifier.new
 
@@ -19,5 +25,11 @@ Handler = Proc.new do |req, res|
     HTTParty.get(confirmURL)
     return
   end
+
+  params = MessagePack.unpack(Base64.decode64(req_body['Message']))
+
+  github_api = Octokit::Client.new(access_token: ENV['GITHUB_API_ACCESS_TOKEN'])
+
+  try_create_hook(github_api, params['repo'], params['delay'])
 
 end
